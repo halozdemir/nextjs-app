@@ -1,0 +1,60 @@
+//When it comes to hosting NextJs you can use different hosting providers. And there are different ways of configuring your project as well. For example, you can use "environment variables"
+
+//And regarding to the hosting provider, Im gonna user "vercel". Vercel is great hosting provider for NextJs applications
+
+Go webpage=> Start deploying=> Sign up with Git repisotory because Vercel, you will directly link your Github repisotory to vercel, and Vercel get your source code from the repisotory and deploy it for you. Therefore You need to put your code onto Github before you can deploy it with Vercel.
+
+//Therefore go to Github. Create a new repository, and commit your code. First of all , create ".gitignore" and ignore /node_modules folder.
+
+and then git init, git status, git add ., git commit -m "ready for deployment",
+
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:halozdemir/nextjs-app.git
+git push -u origin main
+
+//Once you pushed your code into git repository, now you can link this repository to Vercel to start deploying.
+
+//Before we do that, let me talk about building for production, and what Vercel actually does. Vercel is a hosting provider which is optimized for NextJS. And that means that you can just connect Vercel to your Github repository, and the Vercel will build and then deploy and start your project for you. So you dont need to run any built command on your own, Vercel will do that for you.
+
+//In the "package.json" file, we have "scripts". We used the "dev script" npm run dev, to start the development process. But we can also run the "build script" npm run build, to build our project for production, so to optimize all our code. And once you run this command (npm run build), this will give you ".next folder" which contains some of these optimized files. So this is what "npm run build command will do for you". And "vercel will execute this command on our behalf on their servers". So "we dont need to run this command on our selves".
+
+//But If you would host your project on another server, except from Vercel, you need to run "npm run build command" and then after "with npm start command, you can start a production server".
+
+//So Therefore lets go back to Vercel, and continue with Github on its webpage. So here, we need to link the Github to Vercel. Once you give authorize to the Vercel.
+
+//And you need to one more thing. You neeed to go MongoDB Atlas, and under the Network Access you need to make sure that "you need to allow your users to access this database from everywhere". So we need to grant this access.
+
+//With that, We see our site up and running on Vercel's server. We can also try a meetup here, and it works as well. It might not show up immediately on this page, because this page is statically generated, and then only revalidated once every second for incoming requests, and then it needs to be pre-generated again. So even after one second, it might not show up immediately.
+
+export async function getStaticProps() {
+// fetch data from an API
+
+const client = await MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+);
+
+const db = client.db();
+
+const meetupsCollection = db.collection("meetups");
+
+const meetups = await meetupsCollection.find().toArray();
+
+client.close();
+
+return {
+props: {
+meetups: meetups.map((meetup) => ({
+title: meetup.title,
+address: meetup.address,
+image: meetup.image,
+id: meetup.\_id.toString(),
+})),
+},
+revalidate: 1,
+};
+} //pages/index.js
+
+// But eventually we see our new meetup on the page. And we can visit the detail page, And we cant visit it, we get a 404 error. Whats the problem here?
