@@ -12,5 +12,19 @@
     "next": "10.0.6",
     "react": "17.0.1",
     "react-dom": "17.0.1"
-  }
+  },
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/halozdemir/nextjs-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/halozdemir/nextjs-app/issues"
+  },
+  "homepage": "https://github.com/halozdemir/nextjs-app#readme",
+  "description": ""
 }
