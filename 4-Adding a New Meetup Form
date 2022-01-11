@@ -1,0 +1,69 @@
+//For this "new-meetup component, were gonna create a component NewMeetupPage, in the new-meetup/index.js file". And then "render our content". Our content in this case, should be the "NewMeetupForm component" which I prepared in advance, which "renders a form".
+
+    function NewMeetupPage() {
+        return;
+      }
+      
+      export default NewMeetupPage;
+      
+
+//"in the NewMeetupForm component, we extract that data the user entered, with help of Refs which is a React feature, has nothing to do with Nextjs". And then we "call a function which we expect to get on the onAddMeetup prop, and to that function(which onAddMeetup prop holds), to that function we can then "pass the collected meetupData" (so this meetupData object with all the collected data)
+
+
+
+function NewMeetupForm(props) {
+    const titleInputRef = useRef();
+    const imageInputRef = useRef();
+    const addressInputRef = useRef();
+    const descriptionInputRef = useRef();
+  
+    function submitHandler(event) {
+      event.preventDefault();
+  
+      const enteredTitle = titleInputRef.current.value;
+      const enteredImage = imageInputRef.current.value;
+      const enteredAddress = addressInputRef.current.value;
+      const enteredDescription = descriptionInputRef.current.value;
+  
+      const meetupData = {
+        title: enteredTitle,
+        image: enteredImage,
+        address: enteredAddress,
+        description: enteredDescription,
+      };
+  
+      props.onAddMeetup(meetupData);
+    }
+  
+    return (
+      <Card>
+
+
+//And "hence in this new-meetup/index.js file, we can use that NewMeetupForm component by importing." And then "use  NewMeetupForm component in the JSX code".  As I mentioned before, "in this NewMeetupForm component, we do expect that "onAddMeetup prop which holds a function that we can call". And hence, I need to prepare this function in the NewMeetupPage component. We can add our "addMeetUpHandler function, and then pass a pointer at this addMeetUpHandler function to the "onAddMeetup prop on the instance of NewMeetupForm component".
+
+//We will not execute this "addMeetUpHandler function on the onAddMeetup prop because in the end, this addMeetUpHandler function will be executed from inside NewMeetupForm component when the form once is submitted"
+
+//So hence we also we need to pass the "parameter enteredMeetupData to addMeetUpHandler function"
+
+
+    import NewMeetupForm from "../../components/meetups/NewMeetupForm";
+
+function NewMeetupPage() {
+  function addMeetupHandler(enteredMeetupData) {
+    console.log(enteredMeetupData);
+  }
+
+  return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}
+
+//With that, visit localhost:3000/new-meetup, we see the form on the screen.
+
+//With that, If I enter form, and sent the form, then I get the information on the console. So the form submission is also working.
+
+
+    {title: 'Cork is a great city', image: 'https://images.unsplash.com/photo-1588963940468-9e…fHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80', address: 'Somewhere 23, 123124 Cork City, Ireland', description: 'Beautiful day when the sun came up'}
+address: "Somewhere 23, 123124 Cork City, Ireland"
+description: "Beautiful day when the sun came up"
+image: "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+title: "Cork is a great city"
+[[Prototype]]: Object

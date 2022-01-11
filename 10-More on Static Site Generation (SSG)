@@ -1,0 +1,93 @@
+//To fully understand getStaticProps() and also see what we can do with it, lets shut the dev server now, and run "npm run build". This is the build command which you need to run before you deploy your Nextjs site. Now, were not gonna deploy but running it is still helpful and interesting.
+
+//If we run "npm run build" to build that production build, to create that production built, we see some output in the terminal, "it generated some static pages, 4 pages to be precise, and we see some pages it generated".
+
+//And we see that "it generated a root page "/", the dynamic page for "/[meetupId]", a 404 page "/404" which is actually generates for us automatically by default, in case we are enter an invalid URL, and also it generated a new meetup page "/new-meetup". And then we "got these icons next to the pages. A filled dot icon and 3 empty dot icons".
+
+info - Generating static pages (4/4)
+
+Page Size First Load JS
+┌ ● (Homepage)/  
+├ └css  
+├ /\_app  
+├ ○ /[meetupId]  
+├ css
+
+404  
+└ ○ /new-meetup
+
+λ (Server) server-side renders at runtime (uses getInitialProps or getServerSideProps)
+○ (Static) automatically rendered as static HTML (uses no initial props)
+● (SSG) automatically generated as static HTML + JSON (uses getStaticProps)
+(ISR) incremental static regeneration (uses revalidate in getStaticProps)
+
+//We learned that " a filled dot is a statically generated site", that's what SSG stands for, Static Site Generation which was automatically generated as HTML. and JSON which is then used for pre-fetching data once the page turned into a single page application.
+
+//The empty dot stands for "Static Generation". Thats almost the same. The only difference is that "in the Static Generation we got no initial props". So we have no initial data that was fetched.
+
+//And indeed "only for the root page, we are fetching data, because that is the page where we added getStaticProps function and thats why the we have filled dot icon"
+
+//Now we'll work on some other pages later, to be precise, we will work on the "meetupId page soon", but for example, "for the new-meetup page does not need any data fetching", "in new-meetup page we only render our form, and we dont need any data, we dont fetch any data from a server", and therefore "the new-meetup page will always stay a static page with no content". So thats fine for "/new-meetup"
+
+//But we will turn the "meetupId" page ("/[meetupId]") into a SSG page later. But "for the moment", we see that "only the starting page, the root page is such a statically generated site "/""
+
+//With that, lets start the development server again. "npm run dev". And lets think about potential problems we could be facing when using getStaticProps()
+
+const DUMMY_MEETUPS = [
+{
+id: "m1",
+title: "A first Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 10, 1234 Cork City",
+description: "This is a first address",
+},
+{
+id: "m2",
+title: "Second Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 12, 1234 Cork City",
+description: "This is second address",
+},
+];
+
+function HomePage(props) {
+
+return <MeetupList meetups={props.meetups} />;
+}
+
+export async function getStaticProps() {
+//fetch data from an API
+return {
+props: {
+meetups: DUMMY_MEETUPS,
+},
+};
+}
+
+//And one pretty big problem which we could face in some websites, is that the data here could "be outdated". This page ("/" HomePage) as I mentioned, is generated during the build process. So thereafter, we deploy it. But If we then, add more meetups to our database, this pre-generated page would not know about them. And If we dont add any client-side data fetching, we would always just see the outdated data/meetups on the page. And this of course could be a problem.
+
+//Now, we can always rebuild our site and redeploy when our data changes. And for some websites, like personal blogs, thiis is a great alternative, because "in these sites data doesnt change too frequently", but "if data does change more freqeuntly, there is a extra property which we can add to this returned object in the getStaticProps function". And thats the "revalidate property".
+
+//When we add this "revalidate property to the object returned by getStaticProps function, we unlock a feature called incremental Static Generation".
+
+//"revalidate property wants a number, lets say 10, and this number is the number of seconds NextJS will wait until it regenerates this page for an incoming request". That means that with "revalidate property set to some number, this HomePage ("/") will not be just generated during the build process, but it will also be generated every couple of seceonds on the server, at least If there are requests for this page"
+
+//So that means that, this HomePage with revalidate property set to 10, would be regenerated on the server, at least every 10 seconds If there are requests coming in for this page. And then, these regenerated pages would replace the old regenerated pages.
+
+//And with that, you ensure that your data is never older than 10 seconds. And therefore, the number of seconds you wanna use "in the Root page", depends on your data update frequency. If your data changes once every hour, then setting this "revalidate property to 3600 might be great". If the data changes all the time, 1 seconds might be better.
+
+export async function getStaticProps() {
+//fetch data from an API
+return {
+props: {
+meetups: DUMMY_MEETUPS,
+},
+revalidate: 10,
+};
+}
+
+//But whatever you set this number to, you will ensure that this page will occasionally be repre-generated on the server, after the deployment so that you dont have to redeploy and rebuild all the time just because some data changed.
+
+//And thats is a important feature you need to know about.

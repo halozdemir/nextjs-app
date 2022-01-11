@@ -1,0 +1,201 @@
+//For this "meetup detail page (meetupId folder/ index.js file), I'll add a new component called MeetupDetails component. In the "return statements, its up to you, how you wanna display the details for a given item. I'll output a Fragment so that we can have multiple adjacent JSX elements, and I'll then start by outputting the "image element of that meetup item, with src and alt attributes". And for the moment, I'll just hardcoded the attributes. Later were gonna connect a real backend. After "image element", I will "add a H1 tag" and below the H1 tag, I will put "a paragraph element", also "we can add an address element which is a default HTML element where we have the address". That could be how we output the MeetupDetails, for the moment with some dummy data.
+
+import { Fragment } from "react";
+
+function MeetupDetails() {
+return (
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+
+//With that, If I reload this MeetupDetails page, we can see the page. But we need to give some styles to it. I'd like to center the text and I'd like to shrink the image a little bit.
+
+//For this, I'll add a brand new component, in the "components/meetups sub folder" and I will call this file "MeetupDetail.js" file. And you dont have to create this component. I just like to keep my "page component files (index.js) lean, and outsource as much JSX code as possible into standalone components". But that is not something you have to do. Nonetheless, I will do it here.
+
+//And I'll copy that "Fragment from the MeetupDetails page component (index.js)" and "add it to the MeetupDetail single component (components/meetups/MeetupDetail file) and create that MeetupDetail component and return that JSX code (paste that Fragment),and accept props already
+
+old=>
+
+function MeetupDetails() {
+return (
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+);
+} // MeetupDetails component => pages/meetupId/index.js file
+
+new=>
+
+import { Fragment } from "react";
+
+function MeetupDetail(props) {
+return (
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+);
+} //newly created MeetupDetail component inside the components/meetups/MeetupDetail file
+
+//and accept props already, and expect that I get that data (value of the src, and alt props) through props, so that the data will be fetched in the page component later, and will then passed into this component (MeetupDetail) which is then responsible for presenting the content. So we here have src= props.image, so we have alt = props. title". For h1 tag, props.title, for address element,props.address.props description.
+
+old =>
+
+function MeetupDetail(props) {
+return (
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+);
+} //newly created MeetupDetail component inside the components/meetups/MeetupDetail file
+
+new=>
+function MeetupDetail(props) {
+return (
+<Fragment>
+<img src={props.image} alt={props.title} />
+
+<h1>{props.title}</h1>
+<address>{props.address}</address>
+<p>{props.description}</p>
+</Fragment>
+);
+}
+
+//Now "on the MeetupDetails page component, we can now output this MeetupDetail component we just created, and for this of course import MeetupDetail component". And we "just need to pass that data which we expect in that component (MeetupDetail) through props into that MeetupDetail component. So "on the instance of MeetupDetail component inside the MeetupDetails page component, we can add image = "dummy_image_link", and set the title prop= "dummy_hard_coded_text", set the address prop="some hardcoded text", set the description prop to "hardcoded data".
+
+old=>
+
+function MeetupDetails() {
+return (
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+);
+} // MeetupDetails component => pages/meetupId/index.js file
+
+new=>
+
+function MeetupDetails() {
+return (
+<MeetupDetail image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80" title="First Meetup" address="Some Street 5, Some City" description= "This is a fist meetup"/>
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment>
+);
+}
+
+//And then we "can get rid of the Fragment and that JSX content from the page component, and just use the instance of MeetupDetail component, inside the MeetupDetails page component"
+
+function MeetupDetails() {
+return (
+<MeetupDetail image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80" title="First Meetup" address="Some Street 5, Some City" description= "This is a fist meetup"/>
+<Fragment>
+<img
+        src="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        alt="A First Meetup"
+      />
+
+<h1>A First Meetup</h1>
+<address>Some Street 15, Some City</address>
+<p>The meetup description</p>
+</Fragment> //removed fragment and just use the content of instance of MeetupDetail component
+);
+}
+
+new=>
+
+function MeetupDetails() { //page component
+return (
+<MeetupDetail image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80" title="First Meetup" address="Some Street 5, Some City" description= "This is a fist meetup"/>
+
+);
+} //So I'm "forwarding image,address,title,description props with hardcoded data from MeetupDetails Page Component which is living inside the pages/meetupId/index.js file, and were forwarding these props into MeetupDetail component which is a React component which lives in the component/meetups/MeetupDetail file
+
+function MeetupDetail(props) { //Standard component
+return (
+<Fragment>
+<img src={props.image} alt={props.title} />
+
+<h1>{props.title}</h1>
+<address>{props.address}</address>
+<p>{props.description}</p>
+</Fragment>
+);
+}
+
+//Why Am I doing that? Again, just to keep the JSX code lean, here in the page component, and also for styling reasons.
+
+//I want to keep my "pages folder lean", and "only have the page js file inside pages folder". For the other standard components on the other hand, Its quite common that we pair a js file with a CSS file. And again, we could have done that "in the pages folder" as well, but I wanna keep that folder leaner. Its more common to include these CSS files into standard components folder.
+
+//Hence I will add "a MeetupDetail.module.css file into components/meetups folder". And then "import classes from MeetupDetail.module.css into MeetupDetail.js file"
+
+//And then "we could replace Fragment component with Section element, and give this section element a className of classes.detail"
+
+old=>
+
+function MeetupDetail(props) {
+return (
+<Fragment>
+
+new=>
+
+import classes from "./MeetupDetail.module.css";
+
+function MeetupDetail(props) {
+return (
+
+<section className={classes.detail}>
+
+//And then "go to module.css file, and then select the img element (.detail img), and then change the image size. So "give the iamge a width of 100% which ensures that the image stays in the box"
+
+.detail img {
+width: 100%;
+}
+
+//I showed you an approach in this lecture, which you dont have to use that approach, but which I like to use, that I keep my page component files relatively lean, especially regarding to JSX code,and I instead use the embeddable standard React components for the actual JSX code and also for styling.
+
+//With that we have our detail page in place, and with that we have all these pages which we need.
+
+//With that , we can work towards replacing that dummy data source in the root js file, with a real back end , with a real data source.

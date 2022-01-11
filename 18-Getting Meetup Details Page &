@@ -1,0 +1,448 @@
+//so now we also execute server-side code in getStaticProps function. And I cant  emphaize enough that this a standard way of doing it, this code will not end up in the client-side bundle. Your credentials will not be exposed, the bundle will not be bloated, this code will execute when this page is pre-generated.
+
+export async function getStaticProps() {
+  // fetch data from an API
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = await meetupsCollection.find().toArray();
+
+  client.close();
+
+  return {
+    props: {
+      meetups: meetups.map((meetup) => ({
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        id: meetup._id.toString(),
+      })),
+    },
+    revalidate: 1,
+  };
+}
+
+
+//Now for the "MeetupDetail page pages/[meetupId]/index.js", we also wanna fetch the data from the database. "For a specific meetup that was selected, but also for determining which paths should be generated, so which meetupIds should be supported" because after all we do only have a limited list of meetups with specific Ids here. So we wanna pre-generate all the paths for all those ids which we have here inside "getStaticPaths function". 
+
+old=>
+
+function MeetupDetails() {
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+}
+
+export async function getStaticPaths() {
+  return {
+    fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+  };
+}
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  console.log(meetupId);
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: meetupId,
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+}
+
+//Therefore we will again need to connect to MongoDB. For this, from index.js I will again copy this connection code, and again you could refactor that code If you want to avoid duplication. And I will import MongoClient from mongodb inside meetupId index.js file. And then in getStaticPaths function we paste the code, and connect to my database, and get access to the meetupsCollection, and then I wanna get all the meetup data. So for this, I get my meetups (const meetups), by again awaiting meetupsCollection.find(). find() method gives me access to all the meetups. 
+
+old=>
+
+export async function getStaticPaths() {
+  return {
+    fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+  };
+}
+
+
+new=>
+
+
+export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = meetupsCollection.find();
+
+  return {
+    fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+  };
+}
+
+
+//Now actually here I'm only interested in "the ids" and therefore we can tweak find method, and pass an empty oobject as a first argument, in this object, we can define our filter criteria, If you wanna not find all documents but filter for certain field values, but I do wanna find all documents, hence we use a empty object, which means give me all the objects, I have no filter criteria, 
+
+//but then we pass a second argument, a second object, where we can define which fields should be extracted for every document. And by default, all the fields will be returned, so all the field values, (title,image, and so on), but If we are only interested in id, we can also add _id key here and set this  to 1, which means only include the _id but no other field values. And with that, were only fetching the ids, so we fetch the document objects, but they each will only contain the id, nothing else.
+
+//Now we also should call toArray() method to convert this into a Javascript array of objects.
+
+
+export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = meetupsCollection.find({}, { _id: 1 }).toArray();
+
+  return {
+    fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+  };
+}
+
+//Now we got our meetups here(const meetups), and now we can generate the paths dynamically. Instead of hardcoding this array (paths array), we can use meetups array, and map every meetup item which is a document with an id, into an object, because paths should be an array of objects, where every object has this params key, just as we had down there, and then, we have a nested object inside params key, where we define our "meetupId values". And the values for meetupId should now be our ids. (find({},{_id:1})) So here we can access meetup._id.toString(). 
+
+//And now get rid of this hardcoded array.
+
+old=>
+
+  return {
+    fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+  }; //we placed dynamic paths instead of these hardcoded paths. removed.
+
+new=>
+
+
+  const meetups = meetupsCollection.find({}, { _id: 1 }).toArray();
+
+  return {
+    fallback: false,
+
+    paths: meetups.map((meetup) => {
+      params: {
+        meetupId: meetup._id.toString();
+      }
+    }),
+  };
+
+
+//With that, were generating our array of paths dynamically. And as a result, If we now save this, If we click this show details button, were taken to the page for this specific object, for this specific meetup. You see this cryptic id in the URL, which is this auto-generated id, MongoDB generated for us. So that's working.
+
+
+http://localhost:3000/61db2e7d539014fdad92d034
+
+
+//But we're yet not fetching the data dnyamically inside meeetupId index.js file. I wanna do that as well.
+
+old=>
+
+function MeetupDetails() {
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+}
+
+//For this, I will first of all close the connection. client.close().
+
+//And then I'll copy this API Route related code from getStaticPaths function, and add it  inside getStaticProps function after we got the meetupId, instead of logging the id.
+
+old=>
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  console.log(meetupId);
+
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: meetupId,
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+}
+
+new=>
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  client.close();
+
+  console.log(meetupId);
+
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: meetupId,
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+}
+
+//And then I wanna get access to a single meetup, not to all the meetups, just a single specific meetup. So I wanna get access to my selectedMeetup (const selectedMeetup), and we do this using the meetupsCollection and using the findOne() method. FindOne method finds one single document. And to findOne method we need to pass an object, where we define how to filter, how to search for that specific document. On this object, you can pass your field names, like title,image, address as keys, and then the values for which you wanna search as values. So we could pass title: A first Meetup as a key-value pair, into this object to find this first meetup where the title is A first meetup.
+
+//Here I dont wanna search by title key, but instead by _id key. So I wanna make sure that automatically generated id (_id) field has a value of meetupId, so this meetupId which we extract from the params object up there (const meetupId= context.params.meetupId). 
+
+//This then finds us this single specific meetup (meetupsCollection.findOne({_id:meetupId})). And this returns a promise because its an async  task and hence we should await this.
+
+//And with that we got selectedMeetup. 
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const selectedMeetup = meetupsCollection.findOne({ _id: meetupId });
+
+  client.close();
+
+  // console.log(meetupId);
+
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: meetupId,
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+}
+
+//And now it's the selectedMeetup which I return here  inside the props object, as a meetupData.
+
+old=>
+
+
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: meetupId,
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+
+new=>
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const selectedMeetup = meetupsCollection.findOne({ _id: meetupId });
+
+  client.close();
+
+  // console.log(meetupId);
+
+  return {
+    props: {
+      meetupData: selectedMeetup,
+    },
+  };
+}
+
+
+//If we do that, It should loads sucessfully, and it should display all the data. Now at the moment, the data I'm showing on the MeetupDetail page is still hardcoded in the JSX code, and now its finally time to use our props data, so the actual fetched data in the JSX code as well.
+
+old=>function MeetupDetails() {
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+}
+
+//For this, were exposing the meetupData prop inside return object of getStaticProps function to to the MeetupDetails component, and hence in MeetupDetails component we should accept props, and use that incoming props data here. So for image key, I'm passing in props.image, for the title Im passing in props.title, and so on. And actually not props.image or props.title, but actually props.meetupData.image and props.meetupData.title, because we have that meetupData prop which holds the meetup item, holds the meetup object. So we need to drill into the meetupData object first, before we can access image,title,address keys.
+
+old=>
+
+function MeetupDetails() {
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+}
+
+new=>
+
+function MeetupDetails(props) {
+  return (
+    <MeetupDetail
+      image={props.meetupData.image}
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
+    />
+  );
+}
+
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+    const meetupsCollection = db.collection("meetups");
+
+    const selectedMeetup = meetupsCollection.findOne({ _id: meetupId });
+
+  return {
+    props: {
+      meetupData: selectedMeetup,
+    },
+  };
+}
+
+
+//Once we did all of that, there's one other thing we need to. Here for findOne method, Im lookign for an id (_id) which is equal to id that I'm getting  from my URL (_id:meetupId), but thats of course will be a string (meetupId:context.params.meetupId), keep in mind that in MongoDB, our ids are these strange object id things. To ensure that we can correctly look for a specific id, we need to convert it from string to such an object id, and for this, from MongoDB, you should import ObjectId and wrap your string with that ObjectId. And this will convert string into such an ObjectId object.
+old=>
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  const selectedMeetup = meetupsCollection.findOne({ _id:meetupId });
+
+MongoDB ids=>
+_id:ObjectId(61db2e7d539014fdad92d034).
+
+We need to convert this string to such an objectId.
+
+new=>
+
+import { MongoClient, ObjectId } from "mongodb";
+
+
+export async function getStaticProps(context) {
+  //fetch data for a single meetup
+
+  const meetupId = context.params.meetupId;
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+
+  const selectedMeetup = await meetupsCollection.findOne({
+    _id: ObjectId(meetupId),
+  });
+
+//Once that is done, we also wanna go to selectedMeetup and make sure that, there we can convert this _id field back to  a string, because otherwise we'll get that serialization error we saw before. So for this, I'll set up meetupData as an object, where I do add an id field which is equal to selectedMeetup._id.toString(), and where I then add all the other data like, title:selectedMeetup.title
+
+old=>
+
+  return {
+    props: {
+      meetupData: selectedMeetup,
+    },
+  }; //we need to convert this _id field which is now ObjectId type, we need to convert this back into string data type. For this I'll set my meetupData to an object.
+
+new=>
+  return {
+    props: {
+      meetupData: {
+        id: selectedMeetup._id.toString(),
+        title: selectedMeetup.title,
+        address: selectedMeetup.address,
+        image: selectedMeetup.image,
+        description: selectedMeetup.description,
+      },
+    },
+  };
+}
+
+//With that, If you reload a single meetup page, you see the data for that specific single meetup. Now these meetup detail pages are pre-rendered on the server dynamically with our code being active and with our code establishing that database connection and fetching the data from there.

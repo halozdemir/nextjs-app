@@ -1,0 +1,116 @@
+//At the moment, were using this "dummy meetups array" "for rendering our lists of meetups in our root index.js file", and on the "meetup detail page" we just "have some hardcoded dummy data". And thats not realistic.
+
+const DUMMY_MEETUPS = [
+{
+id: "m1",
+title: "A first Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 10, 1234 Cork City",
+description: "This is a first address",
+},
+{
+id: "m2",
+title: "Second Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 12, 1234 Cork City",
+description: "This is second address",
+},
+];
+
+function HomePage() {
+return <MeetupList meetups={DUMMY_MEETUPS} />;
+}
+
+//In reality, "we would have a backend, some database which holds that data". Lets simulate that we have a database, later I'll actually have a real database, but for the moment lets smiluate that we do have one. So "in the HomePage component, in this root index.js file, lets "not pass dummy meetups into the meetups prop like that", but "instead lets change this HomePage component to behave the way it would behave If we would reach out to a backend". And "how would we typically do this in React?".
+
+//Well, If we wanna send a HTTP request once this page is rendered (HomePage), we would typically use the useEffect hook to control this. So "import useEffect and execute useEffect inside HomePage component, and have an empty dependencies array which means that this effect function runs whenever the component is first rendered, but never runs thereafter".
+
+import { useEffect } from "react";
+
+function HomePage() {
+useEffect(() => {}, []);
+
+//And then "in the effect function, we fetch our data. And we could manage some state for this component with the useState hook inside the HomePage component, which we also need to import. And then, with this state, we could manage our list of meetups. loadedMeetups state and we have setLoadedMeetups state updating function.
+
+import { useEffect, useState } from "react";
+
+function HomePage() {
+const [loadedMeetups, setLoadedMeetups] = useState([]);
+
+useEffect(() => {
+//send http request and fetch data
+}, []);
+
+return <MeetupList meetups={DUMMY_MEETUPS} />;
+}
+
+//And "in the effect function, we would send a Http request and fetch data". And then "once that's done/fetched, It would be an asynchronous tasks of course, but once that's done, we could call setLoadedMeetups and set the meetups that we fetched from a server as the meetups for this component (loadedMeetups). And for the moment, lets just simulate that we fetched the "dummy meetup array". Lets assume we just "fetched them from a server".
+
+//So "some promise completed here and we got back a response. And now I set my "dummy meetup array" "as the loadedMeetups (lets assume that it's fetched data)".
+
+//And then "in the JSX code we pass the loadedMeetups (as our state) into meetups props, so forwarding into MeetupList component"
+
+old=>
+
+const DUMMY_MEETUPS = [
+{
+id: "m1",
+title: "A first Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 10, 1234 Cork City",
+description: "This is a first address",
+},
+{
+id: "m2",
+title: "Second Meetup",
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+address: "Some address 12, 1234 Cork City",
+description: "This is second address",
+},
+];
+
+function HomePage() {
+return <MeetupList meetups={DUMMY_MEETUPS} />;
+}
+
+new=>
+
+function HomePage() {
+const [loadedMeetups, setLoadedMeetups] = useState([]);
+
+useEffect(() => {
+//send http request and fetch data
+setLoadedMeetups(DUMMY_MEETUPS);
+}, []);
+
+return <MeetupList meetups={loadedMeetups} />;
+}
+
+//If we do all of that, If we visit the starting page (HomePage) with all the meetups button, we dont see any difference. When I reload all the meetups there. Because we never really "send a HTTP request". But "technically there is a difference". Because it is important to note that useEffect works such that it executes this effect function, "after, (importnat), after the component function was executed (HomePage)". "So that means that, the first time this HomePage component is rendered, loadedMeetups array will be an empty array, then this effect function will execute, effect function then update the state (setLoadedMeetups), and then this HomePage function will execute again, because the state is changed, And that will cause to re-render the list (MeetupList) "with the actual data/with the new state".
+
+function HomePage() {
+const [loadedMeetups, setLoadedMeetups] = useState([]); //When the HomePage component first renders our loadedMeetups state will be an empty array. In the first rendered cycle, it will be an empty array
+
+useEffect(() => {
+//send http request and fetch data
+setLoadedMeetups(DUMMY_MEETUPS);
+}, []); //After this effect function executes, the effect function will update the state (setLoadedMeetups), and this HomePage component will execute again, because the state is changed, and that will cause the MeetupList component re-renders with new data
+
+return <MeetupList meetups={loadedMeetups} />;
+}
+
+//But "we'll have 2 component renders cycle". And "in the first render cycle, the first time HomePage component renders, loadedMeetups state will be this initial state (useEffect([])/empty state).
+
+//Why am I emphasizing this? Because If we wwould fetch this data from a backend, our users might see a loading spinner briefly, But in addition, because of these 2 render cycles, we have a problem with search engine optimization. If I viewed a page source, you will notice that in there, the actual meetup data is missing. I got my unordered list, and "this unordered list is empty". So "the items which we see on the screen", "these items are missing in the HTML content, in the HTML page we fetched from the server". And "they are missing because they are only rendered in the second component execution cycle".
+
+//But the "pre-rendered HTML page, generated by NextJS automatically does not wait for this second cycle". It always "takes the result of the first rendered cycle and return state as the pre-rendered HTML code" and "there, this data is missing (setLoadedMeetups(DUMMY_MEETUPS)).
+
+//We faced the problem "NextJS does not wait for that data to be fetched, to then return the fully pre-rendered page, but it returns the result of the first component rendered cycle, and that might be empty page"
+
+//It's an important problem and it is important to understand this problem properly. But thankfully, NextJS has solutions to this problem. NextJS has more features that help us with this problem, that "we wanna pre-render a page with data, but with data for which we have to wait, and we need to tell NextJS, once were done waiting"
+
+//How we can fetch data for pre-rendering?

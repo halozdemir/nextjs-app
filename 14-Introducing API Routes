@@ -1,0 +1,69 @@
+//Now we covered getStaticProps, getStaticPaths and getServerSideProps, and I hope its clear what these functions do and why they exist. They allow us to fetch data for pre-rendering those pages. So that we pre-render the pages with the data, instead of without the data they might need.
+
+//Up to this point, were only working with dummy data though, (DUMMY_MEETUPS). Thats not realistic. Instead we have this "add new meetup page which would allow us to enter data for a new meetup".
+
+//And hence were gonna finish this app by adding a real backend, with a real database where the data will be stored, and from which we then fetched the data.
+
+//And this then also allows me to show you the last major nextJS feature. nextJS makes it easy for us to build an API, a backend API together with our front-end React app, in the same project.
+
+//For this,we can use another key nextJS feature called "API Routes".
+
+//API Routes are special routes, special pages, If you wanna call it like this, which dont return HTML code, but which are instead about accepting incoming HTTP requests, also POST, PATCH,PUT,DELETE requests, whatever you need with JSON data attached to them, and which then might do whatever you need to do, for example, store data in database, and then return JSON data.
+
+//So API Routes allows you to build your own API end points as part of this next project. And they will then be server by the same server as your next application.
+
+//To add API Routes, you add a special folder in your pages folder, and thats folder named "api", this folder has to be named "api" and it has to be "in the pages folder". Then nextJS will pick up any JS file stored in there, and then turn this file into API Routes. So "into end points, that can be targeted by requests and that should receive JSON and return JSON"
+
+//"in this api folder, we can add JS file where the file names will act as path segments in the URL. For example, new-meetup.js file in the api folder."
+
+//In those "JS files inside api folder, you dont create a React component. These API Routes are not about defining, rendering or returning React components. Instead in those files, we will define functions which contains server-side code, because API Routes will only run on the server-side, never on the client, decoding them will never be exposed to the client, so we can also use credentials in API Routes. And those functions are simply triggered whenever a request is sent to this API Route (new-meetup.js => localhost/api/new-meetup).
+
+// localhost/api/new-meetup => This would be the URL of this new-meetup.js file, and If a request is sent to this URL, it will trigger the function which we have to define "in the new-meetup.js file"
+
+//Often this functions name will be "handler()" but its name up to you, the important thing is this function is exported. And this handler function will receive a request and a response objects as parameters (handler(req,res)). You might notice that from Node.js and Express.js
+
+//The request object contains data about the incoming request, the response object will be needed for sending back a response.
+
+//POST localhost:300/api/new-meetup
+
+function handler(req, res) {
+
+}
+
+export default handler;
+
+//From that request object, we can get things like headers or the request body, and also request method (req.method). A method property. This allows us to find out which kind of request was sent. And we could for example check If we are receiving a POST request inside the handler function, so If the request method is POST, and we only execute the code in this If check, If it is an incoming POST request. For other kinds of requests, we dont do anything. So that would ensure that only post requests to this API Route would trigger this code inside the handler function.
+
+//Then inside the If check, we can get our data by accessing req.body. Body field is another built-in field, which contains the body of the incoming request, the data of the incoming request. And then we can do whatever we need to do.
+
+//POST localhost:300/api/new-meetup
+
+function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+}
+}
+
+export default handler;
+
+//This here will be the endpoint for creating a new-meetup. And therefore its probably fair to expect that this data which we get contains "title", "an meetup image", "an address", and "a description" fields. After all, its our page, our project, and our API, so we can expect whichever data we need. We willt then just have to make sure that we send the correct data when we do send a request to this API Route later.
+
+//But for the moment, I do indeed expect that we get some data out of this data , so out of the request body (const data= req.body), And I'll use object de-structuring, and I expect to get a "title", "image","address","description" fields. These are the 4 fields which I expect to get on the incoming request body.
+
+// And then we can store them in a database for example, and thats what were gonna to do now.
+
+//POST localhost:300/api/new-meetup
+
+function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    const { title, image, address, description } = data;
+
+}
+}
+
+export default handler;
+
+// And then we can store them in a database for example, and thats what were gonna to do now.

@@ -1,0 +1,139 @@
+//Now with all our pages finished, and with all that data being fetched and used, with that were being able to add a new meetup on the page, and with that we added all the functionality, and with that we also used all these core NextJS features.
+
+//File-based Routing (for example, [meetupId]/index => getStaticPaths function), API Routes (for example api/new-meetup.js => handler function), also page pre-rendering with data fetching, for example pages/index.js => getStaticProps.
+
+//Now that app is finished, what's missing? Well, we wanna deploy it. We wanna put it onto a remote machine so that users from all over the world can visit our application. Therefore, were gonna deploy it, but before we do that, there is one thing we should also do. And that's metadata.
+
+//The content is visible on the screen. But at this point, we havent added any metadata. If we inspect the rendered HTML code, the head section is relatively empty. We do have some meta tags, but we are missing the description meta tag which would be important for search engines, I'm talking about the description meta tag which allows you to set descriptions, which for example, show up on a Google search results. And we are also missing a page title which is why in tab title, we only see the address as a title. And If our pages would show up as search results, we also want the title on the search results.
+
+//So adding such a metatags, adding such head elements, that is something we definitely also wanna do when we build a site.
+
+//And adding such head elements to our pages is very simply with NextJS. Lets start on the index.js page. So the HomePage. We wanna set a title and set a description. To do that, we can import Head component from "next/head". Head is a component which allows you to add head elements to the head section of your page.
+
+//How do you use it? Simply add it to your returned JSX code. So next to the instance of MeetupList component, I wanna add the Head component, and since adjacent JSX elements not allowed I will import Fragment form react. I will use Fragment to wrap head and meetupList components.
+
+//Now inside of this Head tags, between the opening and closing Head component tag, there you can now insert your head elements. All the HTML elements which you can add in the Head section, you can also add here. For example, "title". And we could give this page a title of "React Meetups".
+
+//If we save this, and go to starting page, you will notice that in the tab title, we see that title which I set in the head component. So that's how we can add a title.
+
+//And thats also how we add this "meta tag" which holds the description, which will be picked up by serach engines. meta tag accept a content prop where we say "Browse a huge list of highly active React meetups". That chould be our meta description for this page. And that would be the text which shows up when our page shows up as a result on a search engine.
+
+//Now with that, we added some meta data, some head data to this starting page.
+
+old=>
+
+function HomePage(props) {
+
+return <MeetupList meetups={props.meetups} />;
+}
+
+new=>
+
+import Head from "next/head";
+import { Fragment } from "react";
+
+function HomePage(props) {
+
+return (
+<Fragment>
+<Head>
+<title>React Meetups</title>
+<meta
+          name="description"
+          content="Browse a huge list of highly active React meetups"
+        ></meta>
+</Head>
+<MeetupList meetups={props.meetups} />;
+</Fragment>
+);
+}
+
+//And we can do this on all the pages. On the new meetup page, I dont just wanna return the NewMeetupForm but also return head component with meta tag and title. With that, If we visit the add new meetup page, we see our title on the tab, and of course we also see the meta tag in the head section in the dev tools.
+
+old=>
+
+function NewMeetupPage() {
+const router = useRouter();
+async function addMeetupHandler(enteredMeetupData) {
+const response = await fetch("api/new-meetup", {
+method: "POST",
+body: JSON.stringify(enteredMeetupData),
+headers: {
+"Content-Type": "application/json",
+},
+});
+
+    const data = await response.json();
+
+    console.log(data);
+
+    router.push("/");
+
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}
+
+new=>
+
+import { Fragment } from "react";
+import Head from "next/head";
+
+return (
+<Fragment>
+<Head>
+<title>Add a New Meetup</title>
+<meta
+          name="description"
+          content="Add your own meeetups and creat amazing networking opportunities"
+        />
+</Head>
+<NewMeetupForm onAddMeetup={addMeetupHandler} />;
+</Fragment>
+);
+}
+
+//Lastly we also wanna show a title and show a description If we view a single meetup, and therefore, we should also go to this single meetup id page ([meetupId]), and also wrap this MeetupDetail into a Fragment, and add this Head component. For a single loaded meetup item, on that MeetupDetails page, I wanna use title of that meetup as a title for this page, so that different meetups have differen ttitles on their pages.
+
+//Hence different meetupus showing up on a serach engine, which show up with different titles and descriptions there as well. And making this title dynamic instead of static is super simple. We can output {props.meetupData.title} as a title element, and then add this meta tag for this "description" and the content. And the content will be dynamic {props.meetupData.description} for example.
+
+old=>
+
+function MeetupDetails(props) {
+return (
+<MeetupDetail
+      image={props.meetupData.image}
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
+    />
+);
+}
+
+new=>
+
+import { Fragment } from "react";
+import Head from "next/head";
+
+function MeetupDetails(props) {
+return (
+<Fragment>
+<Head>
+<title>{props.meetupData.title}</title>
+<meta name="description" content={props.meetupData.description} />
+</Head>
+<MeetupDetail
+        image={props.meetupData.image}
+        title={props.meetupData.title}
+        address={props.meetupData.address}
+        description={props.meetupData.description}
+      />
+</Fragment>
+);
+}
+
+//So therefore, we can set a hard coded description as we do it on the Add a NewMeetup page, but we can also set a dynamic value as we're doing in the SingleMeetup page (meetupId)
+
+//With that, this single meetup page,we see that title in the tab, and If we inspect this, in the head section, we also see the title and the description.
+
+//With that we really prepared our page for deployment. Because with that, we made sure that search engines get all that extra metadata, and we also show our users some nice titles in the tab as well.

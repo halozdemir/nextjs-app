@@ -1,0 +1,73 @@
+//Create index.js file in the root folder. Thats gonna be our "HomePage component". HomePage component renders in the JSX our "MeetupList component"
+
+
+function HomePage() {
+  return;
+}
+
+export default HomePage;
+
+
+//And "MeetupList component wants a "meetups prop" which "holds a list of meetups", which we then "map into a list of JSX elements" where "every meetup needs have an id, image,title and address properties". And "hence we used MeetupList in our HomePage Component, we need to make sure that, "we provide that meetups prop to HomePage component"
+
+
+
+function MeetupList(props) {
+  return (
+    <ul className={classes.list}>
+      {props.meetups.map((meetup) => (
+        <MeetupItem
+          key={meetup.id}
+          id={meetup.id}
+          image={meetup.image}
+          title={meetup.title}
+          address={meetup.address}
+        />
+      ))}
+    </ul> //MeetupList component
+
+
+//It also worth noting that "MeetupList component and MeetupItem component is a regular React components. They are stored in the components folder , not in the pages folder"
+
+//The "important difference is that those components stored in the components folder, will not be loaded as pages automatically, instead we can use them in the JSX code of other components, including page components". So we can "include the MeetupList component, on the HomePage component". Simply "by importing MeetupList" and then "we can use it on the JSX of HomePage component". And then "set this meetups prop" which "this MeetupList components expects"
+
+//And then we can "then construct some DUMMY_MEETUPS in the HomePage component", later we'll be able to create and store our own meetups "in a database", for the moment lets use some dummy meetups.
+
+//And that DUMMY_MEETUPS should be "an array of meetup items, where every item has an id, where every item has a title, where every item has an image, also every item should have an address, (which we also extract this data in MeetupList component, so we need to create this address prop as well), and also every item should have a description prop.
+
+//And we can "duplicate or replicate this meetup and create a second meetup with different values"
+
+//And then "we can pass this DUMMY_MEETUPS array into the meetups props of the MeetupList component"
+
+
+import MeetupList from "../components/meetups/MeetupList";
+
+const DUMMY_MEETUPS = [
+  {
+    id: "m1",
+    title: "A first Meetup",
+    image:
+      "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+    address: "Some address 10, 1234 Cork City",
+    description: "This is a first address",
+  },
+  {
+    id: "m2",
+    title: "Second Meetup",
+    image:
+      "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+    address: "Some address 12, 1234 Cork City",
+    description: "This is second address",
+  },
+];
+
+function HomePage() {
+  return <MeetupList meetups={DUMMY_MEETUPS} />;
+}
+
+
+//Thats all standard React. Theres nothing NextJS specific about that.
+
+//With that, our first page loaded succesfully
+
+//So with that, were using another React "component" in that "page". A "component" which is "not a page component". That is also worth noting.

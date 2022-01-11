@@ -1,0 +1,211 @@
+//Its great that we're not storing meetups in our collection. But we're not using those stored meetups. If we go to "all meetups on the page", I still display my dummy meetups. The same for the details page.
+
+//Now we want to fetch data from MongoDB as well. And of course now, we could create new API Routes, we could create API Routes named "meetups.js", and in this file we can add "another handler function we connect to MongoDB and then inside that handler function we can write code that fetches all the meetups". And then on the starting page (pages/index.js), "in getStaticProps function, we could simply use fetch() function, and indeed NextJS adds a feature, that you can use fetch function on a server side code as well, (normally use you can only use fetch function on the client side but in NextJS projects, you can use fetch function in server-side code snippets as well). So we can use fetch function inside getStaticProps, to send the request to "/api/meetups", fetch all the meetups, and then populate our props with those meetups. We could do that. But it would be a bit cumbersome. Sending a request to our own API end point is a bit redundant. Keep in mind that, the code you add in the getStaticProps function, will only run on the server, or during build time, but never in the client.
+
+export async function getStaticProps() {
+fetch("/api/meetups"); //we can send a request to our API Route from here
+
+return {
+props: {
+meetups: DUMMY_MEETUPS,
+},
+revalidate: 10,
+};
+} //pages/index.js => starting page
+
+// We could do that. But it would be a bit cumbersome. Sending a request to our own API end point is a bit redundant. Keep in mind that, the code you add in the getStaticProps function, will only run on the server, or during build time, but never in the client.So the code we write in the getStaticProps function, will not be exposed to the client. So therefore, If you wanna fetch all your meetups "in side getStaticProps", we can directly write the code for doing so inside of getStaticProps, or in a helper function, which we then execute inside the getStaticProps. So we dont need to send the request to our own API Route, we can immediately execute the code just here inside getStaticProps function, which then avoids this extra unnecessary request which were gonna send otherwise.
+
+//Therefore, we can "import MongoClient from mongodb" and then "connect to it inside root page ". Now when you import something in a page component file, and that imported thing then used in a getServerSideProps function or getStaticProps function, the imported package will not be part of the client-side bundle. So you can import code which will then only executed on the server, and nextjS will detect this and not include that package in your client side bundle. So you can import both server-side and client code here and depending on where you use it, it will be included in different bundles which are independent from each other. That's a nice, smart feature built-into NextJS.
+
+//Therefore, with MongoClient import, we can use it in getStaticProps function, to connect(). (MongoClient.connect())
+
+Old=>
+export async function getStaticProps() {
+fetch("/api/meetups");
+
+new=>
+import { MongoClient } from "mongodb";
+
+export async function getStaticProps() {
+MongoClient.connect();
+
+//Now we can go to the API Route file (new-meetup.js), and get rid of other API Route file (meetups.js because we dont need it anymore), and "in the new-meetup.js file copy that code, for establishing the connection, getting access to the database, and getting access to a collection.
+
+//We could also refactor this code, and outsource it into a separate function to avoid copying this, but here ı will copy it, and paste it into getStaticProps function.
+
+export async function getStaticProps() {
+const client = await MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+);
+
+const db = client.db();
+
+const meetupsCollection = db.collection("meetups");
+
+//With that, we connect to database inside the getStaticProps function, and then once we did connect, and once we reach out to the meetupsCollection, we can use the meetupsCollection to call the find() method on it. And the find method by default find all the documents in that collection (meetupsCollection.find()). Its an async task, returning a promise, which we can await (await meetupsCollection.find()), because Im using async keyword in front of getStaticProps function, And then ultimately we'll therefore get our meetups. (const meetups = await meetuosCollection.find()). And to be precise, we should call "toArray() method" after "find() method", so that we can get back an array of documents.
+
+export async function getStaticProps() {
+const client = await MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+);
+
+const db = client.db();
+
+const meetupsCollection = db.collection("meetups");
+
+const meetups = await meetupsCollection.find().toArray();
+
+//Then we have this "array of meetups" (const meetups), and the meetups key here, which I set to in my props object, will be now the meetups, which I'm fetching from the MongoDB (meetups:DUMMY_MEETUPS instead meetups:meetups).
+
+//We can then also close the connection again once were done fetching data from mongodb before we return. (client.close()).
+
+old=>
+
+export async function getStaticProps() {
+const client = await MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+);
+
+const db = client.db();
+
+const meetupsCollection = db.collection("meetups");
+
+const meetups = await meetupsCollection.find().toArray();
+
+return {
+props: {
+meetups: DUMMY_MEETUPS,
+},
+revalidate: 10,
+};
+}
+
+new=>
+
+export async function getStaticProps() {
+const client = await MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+);
+
+const db = client.db();
+
+const meetupsCollection = db.collection("meetups");
+
+const meetups = await meetupsCollection.find().toArray();
+
+ client.close();
+
+return {
+props: {
+meetups: meetups,
+},
+revalidate: 10,
+};
+}
+
+// And If we do that and reload this allmeetups page. We get this error. This error is related to the "auto-generated id". As you can see in the database, it's not a string, it's this strange object id thing, and that turns out to be a more complex object, which cant be returned as data just like normal object. Therefore, we need to do is, the meetups which were getting from the database, we wanna map this array so that we transform every meetup a little bit, and then return an object for every meetup where we have title which is meetup.title, where we have an address which is meetup.address, where we have an image which is meetup.image, we also add an id field , not \_id, but just id key like this, because Im using just id like this, in my front-end components, and we set id equal to meetup.\_id.toString(), and this will then convert this object to a string, which is usable.
+
+_id:(61db2e7d539014fdad92d034) //in MongoDB database we have this auto-generated id key. This is cauising an error.
+
+
+Error: Error serializing `.meetups[0]._id` returned from `getStaticProps` in "/".
+Reason: `object` ("[object Object]") cannot be serialized as JSON. Please only return JSON serializable data types.
+
+old=>
+
+  return {
+    props: {
+      meetups: meetups,
+    },
+    revalidate: 10,
+  };
+
+new=>
+
+
+export async function getStaticProps() {
+  // fetch data from an API
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = await meetupsCollection.find().toArray();
+
+  client.close();
+
+  return {
+    props: {
+      meetups: meetups.map((meetup) => ({
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        id: meetup._id.toString(),
+      })),
+    },
+    revalidate: 1,
+  };
+}
+
+
+//And If we convert our data and save everything, this works and we see our meetups again, but thats now a list of meetups based on the meetup data we have in our MongoDB database, not our DUMMY_MEETUPS anymore. And I can prove this, I can remove this DUMMY_MEETUPS array from root file, everything will still work If we reload this starting page.
+
+
+const DUMMY_MEETUPS = [
+  {
+    id: "m1",
+    title: "A first Meetup",
+    image:
+      "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+    address: "Some address 10, 1234 Cork City",
+    description: "This is a first address",
+  },
+  {
+    id: "m2",
+    title: "Second Meetup",
+    image:
+      "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+    address: "Some address 12, 1234 Cork City",
+    description: "This is second address",
+  },
+]; //removed dummy array
+
+//So now we are pre-rendering this page with data that's actually coming from a database.
+
+//And all this API Route related code will execute whenever this page is pre-generated. So not for every incoming request, because it's not getServerSideProps function but it's getStaticProps function, but therefore during the build process, and when we revalidate, then this page will be pre-rendered (pages/index.js), and this API Route related code will run again.
+
+
+export async function getStaticProps() {
+  // fetch data from an API
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = await meetupsCollection.find().toArray();
+
+  client.close();
+
+  return {
+    props: {
+      meetups: meetups.map((meetup) => ({
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        id: meetup._id.toString(),
+      })),
+    },
+    revalidate: 1,
+  };
+}
+
+export default HomePage;
+

@@ -1,0 +1,159 @@
+//getStaticPaths is another function, NextJS understands, just like getStaticProps and getServerSideProps, and getStaticPaths is a function you need to export in a page component file, If it's a dynamic page, like we have it here [meetupId], and you're using getStaticProps function, not If you're using getServerSideProps, but If its needed If you do use getStaticProps.
+
+function MeetupDetails() {
+return (
+<MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+);
+}
+
+export async function getStaticProps(context) {
+//fetch data for a single meetup
+
+const meetupId = context.params.meetupId;
+
+console.log(meetupId);
+return {
+props: {
+meetupData: {
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+id: meetupId,
+title: "First meetup",
+address: "Some Street 5, Some City",
+description: "This is a fist meetup",
+},
+},
+};
+} // [meetupId]/index MeetupDetails component
+
+//So in that case, you need to export that getStaticPaths function ,and this function can also be an async function so that you can use async/await in there.
+
+//Whats the deal with getStaticPaths? To understand it, think about the fact that with getStaticProps, a page is pre-generated during the build process. What does this mean?
+
+//This means that, NextJS needs to pre-generate all versions of this dynamic page in advance, for all the supported ids. Because since this is a dynamic page, NextJS needs to know for which id valuees, it should be pre-generate the page. Because how would it pre-generate this page otherwise?
+
+//We get the "id from the URL (context.params.meetupId)", great, but keep in mind that, this is not pre-generated when a user visits this page with a specific value in the URL, but during the build process. So here we need to pre-generated for all the URLs, for all the meetupId values, users might be entering at runtime.
+
+export async function getStaticProps(context) {
+//fetch data for a single meetup
+
+const meetupId = context.params.meetupId;
+
+console.log(meetupId);
+return {
+
+//And If they enter an id for which we didnt pre-generate a page, they will see a 404 error. But because that is how it works. We need to add "getStaticPaths function", which has the job of returning an object where we describe all the dynamic segment values, so all the meetupIds in this case, for which this page should be pre-generated.
+
+//For this, "this object needs to have a paths key, which holds an array, and in that array, you must have multiple objets, one object per version of this dynamic page, where this object has a params key that's a must have, which then itself/params key holds an object with all the key value pairs that might lead to your dynamic page. So If you have multiple dynamic segments then you would have multiple keys in this params nested object. In this case, we only have [meetupId] as a single dynamic segment. And hence in this params nested object, we would add a meetupId key, and then enter the concrete value ("m1") for meetupId , for which this page should be pre-generated.
+
+function MeetupDetails() {
+return (
+<MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+);
+}
+
+export async function getStaticPaths() {
+return {
+paths: [{ params: { meetupId: "m1" } }],
+};
+}
+
+export async function getStaticProps(context) {
+//fetch data for a single meetup
+
+const meetupId = context.params.meetupId;
+
+console.log(meetupId);
+return {
+
+//And If we have multiple possible values, in this case, we would return a paths array with 2 objects inside of it, where the other object uses "m2" as a meetupId
+
+export async function getStaticPaths() {
+return {
+paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+};
+}
+
+//In reality, of course, you will not hard code this paths array as a developer, but also you would also fetch your supported ids from a database, or from an API and generate this paths array dynamically. And were also going to do that later. But for the moment, lets hard-code it.
+
+//With that, If you save that file, with getStaticPaths added into meetupId/index file, and with this getStaticProps still in this file. With If you reload the page, we dont get this error anymore, instead we get this error regarding the fallback key.
+
+Error: The `fallback` key must be returned from getStaticPaths in /[meetupId].
+
+//And that's an another configuration which you need to add "in this returned object next to your paths key, inside the getStaticPaths function". the "fallback key". This "fallback key tells NextJS whether your paths array contains all supported parameter values, or just some of them". "If you set fallback key to false, you say your paths contains all supported meetupId values, that means that If the user enters anything, that's not supported in the paths object, fr example "m3", the user would see a 404 error. If you set fallback key to true on the other hand, NextJS would try to generate a page with this meetupId dynamically on the server for the incoming request".
+
+//Fallback is a nice feature because it allows you to pre-generate some of your pages for specific meetupId values, for example, the pages which are visited most frequently, and then pre-generate the missing ones dynamically when requests for them, are coming in.
+
+//in this case, I'll set the fallback key to false, to indicate that I defined all supported paths here.
+
+export async function getStaticPaths() {
+return {
+fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+
+};
+}
+
+//General concept is tat we can simply define some paths instead of all paths. If we have hundreds of pages, and we dont wanna pre-generate all of them but maybe just our most popular pages.
+
+//Therefore with fallback key added now, we successfully load the page for this first meetup, If I go to "m2" (localhost:3000/m1 \* localhost:3000/m2), that also works, But If I enter "m3", I get the default 404 page, because I had fallback key set to false, and "M3" is not one of the supported parameters in the paths object. Thats how this works.
+
+//getStaticPaths is another important function which you need in dynamic pages to tell NextJS for which dynamic parameter values this page should be pre-generated (MeetupDetails). And then again getStaticProps executes for every page, so for every meetupId value allows you to fetch data for that meetup and allows you to return props for that meeetup.
+
+//And as a side note, where I logged the meetupId, we do see that log in the terminal, we dont see it in the browser developer tools, the console is empty, because I mentioned that this code inside of the getStaticProps function, which runs during build time, and when running in the development server, it does run for every incoming request, but only on the developer server side. So we only see it in the terminal of the developer server, and not in the browser.
+
+function MeetupDetails() {
+return (
+<MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+);
+}
+
+export async function getStaticPaths() {
+return {
+fallback: false,
+
+    paths: [{ params: { meetupId: "m1" } }, { params: { meetupId: "m2" } }],
+
+};
+}
+
+export async function getStaticProps(context) {
+//fetch data for a single meetup
+
+const meetupId = context.params.meetupId;
+
+console.log(meetupId);
+return {
+props: {
+meetupData: {
+image:
+"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+id: meetupId,
+title: "First meetup",
+address: "Some Street 5, Some City",
+description: "This is a fist meetup",
+},
+},
+};
+}
+
+wait - compiling...
+event - compiled successfully
+m1
+m1

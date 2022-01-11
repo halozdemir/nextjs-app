@@ -1,0 +1,231 @@
+//we have a basic API Route, which will insert meetups into our database, and therefore in the next step, we can now send a request to this API Route from the front end when this form is submitted so that we actually do trigger this API Router and we use that code in API route file.
+
+import { MongoClient } from "mongodb";
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    // const { title, image, address, description } = data; //no need to object destructuring anymore because we insert the data object directly into database
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+    const result = await meetupsCollection.insertOne(data);
+
+    console.log(result);
+
+    client.close();
+
+    res.status(201).json({ message: "Meetup inserted!" });
+
+}
+} pages/api folder/new-meetup.js
+
+//Now sending a HTTP request to the API Route works just as sending a request to any API, to any backend works in React.
+
+//"in our NewMeetupForm componenet, we call onAddMeetup props to pass our collected data (meetupData), and in the end, we need to go to the component, that uses NewMeetupForm to work with that data. And component is our new-meetup page. "in new-meetup page, we have this addMeetupHandler function which gets this collected data as a parameter.
+
+function NewMeetupForm(props) {
+
+    const meetupData = {
+      title: enteredTitle,
+      image: enteredImage,
+      address: enteredAddress,
+      description: enteredDescription,
+    };
+
+    props.onAddMeetup(meetupData);
+
+} //components/NewMeetupForm file
+
+function NewMeetupPage() {
+function addMeetupHandler(enteredMeetupData) {
+console.log(enteredMeetupData);
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+} pages/new-meetup/index.js
+
+//Therefore "in addMeetupHandler function we wanna send the request to our API Route. And we can send a request just as we know it. For example, with the built-in fetch function, or with a third party package like axios.
+
+//And I wanna use async/await. So I will turn this addMeetupHandler function into an async function and await the fetch function, and store it into response constant. And then into fetch function we need to insert the URL to which we want to send the request. And the path is first the folder name and then the file name without the file extension (/api/new-meetup). (fetch("api/new-meetup")).
+
+old=>
+
+function NewMeetupPage() {
+function addMeetupHandler(enteredMeetupData) {
+console.log(enteredMeetupData);
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+} pages/new-meetup/index.js
+
+new=>
+
+function NewMeetupPage() {
+async function addMeetupHandler(enteredMeetupData) {
+const response = await fetch("api/new-meetup");
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}
+
+//This will now send a request to this new-meetup.js file in the api folder. And the request then will trigger this handler function. NextJS will trigger this handler function for us, when the request reaches this path.
+
+function NewMeetupPage() {
+async function addMeetupHandler(enteredMeetupData) {
+const response = await fetch("api/new-meetup");
+} //this will now send a request to this API Router.
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}pages/new-meetup/index.js
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    // const { title, image, address, description } = data; //no need to object destructuring anymore because we insert the data object directly into database
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+    const result = await meetupsCollection.insertOne(data);
+
+    console.log(result);
+
+    client.close();
+
+    res.status(201).json({ message: "Meetup inserted!" });
+
+}
+}
+
+    //pages/api/new-meetup.js file=> This handler is gonna receive request and NextJS is gonna trigger handler function for us.
+
+//Now we actually do need to send a POST request, because in the handler function we expect to get a POST request, and hence, in the fetch function, we need to use this second argument which we can pass to this fetch function to configure this request. For example, we can set the method key to POST, we then should also add the body key, (data attached to this request), and body has to be a JS object which carries the data which we wanna store in our database (a title, an image, an address, and a description field).
+
+//Now "enteredMeetupData as a parameter in the addMeetupHandler function which we get from NewMeetupForm does have those fields already (title,image,address,description). And since thats the case, in the end we can simply pass enteredMeetupData as a body. But first of all we need to convert it into JSON, which we can do it with the built-in JSON.stringify method
+
+function NewMeetupForm(props) {
+
+    const meetupData = {
+      title: enteredTitle,
+      image: enteredImage,
+      address: enteredAddress,
+      description: enteredDescription,
+    };
+
+    props.onAddMeetup(meetupData); //meetupData forwarded to NewMeetUpPage component via onAddMeetup function
+
+} //components/newMeetupForm
+
+function NewMeetupPage() {
+async function addMeetupHandler(enteredMeetupData) {
+
+    return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+
+} //pages/new-meetup/index
+
+//Then we can also add some headers. To make it clear that were sending JSON data, by adding the "Content-Type" header and setting this to "application/json". And with that our request is configured, and it will be sent.
+
+//Eventually we then get a response, and we can then also get data from that response If we want to. (const data = await response.json())
+
+//And then we can work with that data. So here I'm not interested in it. So I'll just logged that data.
+
+function NewMeetupPage() {
+async function addMeetupHandler(enteredMeetupData) {
+const response = await fetch("api/new-meetup", {
+method: "POST",
+body: JSON.stringify(enteredMeetupData),
+headers: {
+"Content-Type": "application/json",
+},
+});
+
+    const data = await response.json();
+
+    console.log(data);
+
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}
+
+//If we do all of that, we should be able to go back to our form on the site, and open the dev tools, and then enter our data onto form, and then click add meetup button, we see this response eventually on the console, this response message ("Meetup inserted!") is coming from API Route. And If we go to MongoDB, to our cluster, and click on collections, there we should then also see a meetups database with a meetups collection, and in there , you should see one meetup with the data, you just added. And it automatiically generated id.
+
+{message: 'Meetup inserted!'}
+message: "Meetup inserted!" //on the client-side, on the console
+
+\_id:61db2e7d539014fdad92d034
+title:"Cork meetup"
+image :"https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-..."
+address:"Some address on Cork city"
+description:"Its a sunny day whilst running on the park"
+//on the backend.
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    // const { title, image, address, description } = data; //no need to object destructuring anymore because we insert the data object directly into database
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+    const result = await meetupsCollection.insertOne(data);
+
+    console.log(result);
+
+    client.close();
+
+    res.status(201).json({ message: "Meetup inserted!" });
+
+}
+} //when we submitted the form, the request reach to the API Router, NextJS trigerred the handler function. And the "message shows on the consoel"
+
+//And that's our API Router in action, and how we can send a request to it.
+
+//Now of course, we now wanna navigate away after we added a meetup, and therefore back in the new-meetup page, after we got our response, we might wanna navigate away programatically, and we learned how that works, we can use the useRouter hook, and import it from "next/router" therefore to get access to that router object, and once we got that router object, once we got that, we can navigate away with the push method, or with the replace method to make sure that we cant go back with the back button. Here I dont wanna do that, hence I'll just use push method, and navigate away to just "/", so to the starting page
+
+import { useRouter } from "next/router";
+import NewMeetupForm from "../../components/meetups/NewMeetupForm";
+
+function NewMeetupPage() {
+const router = useRouter();
+async function addMeetupHandler(enteredMeetupData) {
+const response = await fetch("api/new-meetup", {
+method: "POST",
+body: JSON.stringify(enteredMeetupData),
+headers: {
+"Content-Type": "application/json",
+},
+});
+
+    const data = await response.json();
+
+    console.log(data);
+
+    router.push("/");
+
+}
+
+return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+}
+
+//With that, enter form on the page, click add meetup button, you see eventually we're navigated away. And of course we can do a loading spinner and do all of that. But that's all just client side standard React, nothing special NextJS about it. The NextJS specific part was this API Route. And as you see that API Route is now working just fine.

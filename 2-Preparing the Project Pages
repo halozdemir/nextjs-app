@@ -1,0 +1,27 @@
+//To dive in, I wanna start with a couple of "pages".
+
+//And then "run the command=> npm run dev" to start the development server.
+
+"npm start" wont work you need to run "npm run dev"
+
+"scripts": {
+"dev": "next dev",
+"build": "next build",
+"start": "next start"
+},
+
+//We will "need 3 pages". "A starting page" which shows a list of all meetups. Then "the new meetup page" which allows us to add a new meetup. And then "the meetup detail page" which allows us to "show the details for a selected meetup".
+
+//Hence "in the pages folder, I'll start with the starting page (index.js), index.js is a special file name, which will be loaded for just "/nothing". (index.js=> our-domain/)
+
+//Then add a "new-meetup.js file", which would be loaded for "our-domain/new-meetup". For that we can "create a new-meetup folder inside of the pages folder", and "move the new-meetup.js file inside that new-meetup sub folder", and "rename the new-meetup.js file to index.js file". And that would then be loaded in exactly the same way. (new-meetup/index.js=> our-domain/new-meetup)
+
+//If you need "nested Routes" you need "that subfolder approach"
+
+//And then we also need "this detail page" which we "load If a specific meetup was clicked and we wanna view the details of that meetup". And for this, "we need a dynamic page because of course, we'll have a multiple meetups with different ids, and the ID should be part of the URL, and then when we load the page we wanna use that id to fetch and display the appropriate data".
+
+//And we also learned that. We can "create a dynamic page with square brackets [].js" and then "use any identifier name of our choice between the square brackets". for example, [meetupId].js
+
+//And here we can also use "the subfolder approach, it also available for dynamic pages, we can also create a subfolder name [meetupId] between square brackets, and move that file ([meetupId] in that subfolder) and then rename that [meetupId] file to index.js. And thats also work. You can also have that "dynamic folder names" then "create dynamic nested pages If you need them"
+
+//With that, we got the "page structure we want with those 3 pages"

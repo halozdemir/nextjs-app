@@ -1,0 +1,165 @@
+//As a database I will use MongoDB, and to be precise, I'll use their cloud offering, MongoDB Atlas, which is a fully managed could-based MongoDB database with which we can get started for free.
+
+//After you sign up, and after logging in, you'll end up on a page where you can create a new cluster
+
+//Under clusters segment, you have to add your local ip. So that you local ip is able to send requests to MongoDB. To be precise, NextJS allow us to "determine WHEN a page should be pre-rendered. But we're gonna learn that step by step".
+
+//Now we need to use the Node.JS MongoDB driver to write code in our API Route, that does send queries to this MongoDB Atlas Cluster.
+
+//For this we need to quit the development server. And "install mongodb package". The "npm install mongodb". This is MongoDB package which makes sending queries to MongoDB easy. Once you install it, you can start the development server again.
+
+//Now, this MongoDB driver allows us to connect to this cluster, and then insert data or fetch data from there.
+
+//For this in this "api Route file (new-meetup.js), we can import {MongoClient} object from "mongodb"". This is an object which allows us to connect.
+
+import { MongoClient } from "mongodb";
+
+//We can execute this MongoClient code in the handler function. We can use MongoClient and call the conntect method here. (MongoClient.method())
+
+//The connect() method wants this connection string. (mongodb+srv://halitozdemir:<password>@cluster0.isykf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority). So copy that string and pass this as a parameter, into the connect method.
+
+//In that string you need to plug in the username and password of your user. so the user who has read and write access which you created.
+
+//You also should replace the myFirstDatabase with any database name of your choice, for example, meetups. Thats up to you.
+
+old=>
+mongodb+srv://halitozdemir:<password>@cluster0.isykf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+
+new=>
+mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority
+
+import { MongoClient } from "mongodb";
+
+function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    const { title, image, address, description } = data;
+
+    MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+}
+}
+
+//When you do that connect method will establish a connection. And this is code which you never, never want to run on the client side. Because you would expose your credentials to your visitors, which is a security problem. But here in this API Route file, it's no problem, because as I mentioned, the code defined in the API Route, will never end up on the client side. So this is a secure place to store credentials.
+
+MongoClient.connect(
+"mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+); //never run this on the client-side
+
+//Now, connect method does return a promise, and hence we turn our handler function into an async function to use await. This is possible and supported by NextJS, and this will give us a connected client eventually. (const client=link)
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    const { title, image, address, description } = data;
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+}
+
+//On that client object, we can call the "db method" (client.db()) to get hold of that database to which we are connecting (meetups database). By the way, If that database doesnt exist yet, It will be created on the fly. (const db= client.db())
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    const { title, image, address, description } = data;
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+}
+}
+
+//And then on this database(db) we can get access to meetupsConnection. MongoDB is a NoSQL database that works with collections full of documents. Collections would be kind of your tables in a SQL database, and documents would be your entries in those tables. So you have collections which holds multiple documents. And a single meetup would be a single document, the overall connection then holds multiple meetups, multiple meetup documents. And you get hold of a collection by using your database, and then the collection method. And the collection can have any name of your choice, just as the database If it doesnt exist yet, It will be generated on the fly. And the collection could be named "meetups" as well just like the database.
+(const meetupsConnection= db.collection("meetups")). So the collection can have the same name as the database, but you can also use different names
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    const { title, image, address, description } = data;
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+}
+}
+
+//Now we got hold of the meetupsCollection, on that collection we can call "insertOne()" which is one of the build-in query commands "for inserting one new document into this collection". And the great thing about the MongoDB is that a document is just a object in the end. A Javascript object. And that now could be an object with title, image, address, description. So since thats the case, we can just directly insert "the data constant" into our database
+const {title,image,address,description}=data
+(meetupsCollection.insertOne(data))
+
+//Now this also is an async operation, insertOne() returns a promise, and hence we can await this as well, to get back the result of this operation.
+
+//result would be an object, with for example, automatically generated id. we can console.log(result).
+
+const result = await meetupsCollection.insertOne(data)
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    // const { title, image, address, description } = data; //no need to object destructuring anymore because we insert the data object directly into database
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+    const result = await meetupsCollection.insertOne(data);
+
+    console.log(result);
+
+}
+}
+
+//We can also add error handling, to handle the case that, connecting failed or inserting failed. But in here, lets keep this simple. But you can simply to wrap this into try catch method to add error handling If you want to.
+
+//Now I want to call "client.close()" to close the database connection. once were done.
+
+//And then we need to use this response object, (handler(req,res)) to send back a response. Because were getting a request, we're then storing data in the database, ultimately we also need to send back a response then. And we do this with response object. You have a status method, which you can call on response object to set a HTTP status code of the response which will be returned. (res.status(201)), for example 201 status code to indicate that, something was inserted successfully. You can then chain a JSON call here to prepare the JSON data, that will be added to the outgoing response (res.status(201).json()). And in JSON method, we can add a message key where we say "Meetup inserted!". But of course its totally up to you, which kind of response you wanna return. With that, we have a basic API Route, which will insert meetups into our database, and therefore in the next step, we can now send a request to this API Route from the front end when this form is submitted so that we actually do trigger this API Router and we use that code in API route file.
+
+import { MongoClient } from "mongodb";
+
+async function handler(req, res) {
+if (req.method === "POST") {
+const data = req.body;
+
+    // const { title, image, address, description } = data; //no need to object destructuring anymore because we insert the data object directly into database
+
+    const client = await MongoClient.connect(
+      "mongodb+srv://halitozdemir:damlamdamlam@cluster0.isykf.mongodb.net/meetups?retryWrites=true&w=majority"
+    );
+
+    const db = client.db();
+
+    const meetupsCollection = db.collection("meetups");
+
+    const result = await meetupsCollection.insertOne(data);
+
+    console.log(result);
+
+    client.close();
+
+    res.status(201).json({ message: "Meetup inserted!" });
+
+}
+}

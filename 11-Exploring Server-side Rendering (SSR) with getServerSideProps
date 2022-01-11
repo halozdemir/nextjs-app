@@ -1,0 +1,99 @@
+//getStaticProps is a very useful function which you can export in your page components to ensure that your pre-rendered pages contain data you might need to wait for
+
+//With revalidate property, you can ensure that this page is also updated regularly after deployment.
+
+function HomePage(props) {
+  return <MeetupList meetups={props.meetups} />;
+}
+
+export async function getStaticProps() {
+  //fetch data from an API
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS,
+    },
+    revalidate: 10,
+  };
+}
+
+//But sometimes, even a regular update is not enough. sometimes you really want to regenerate this page for every incoming request. So you want to pre-generate the page dynamically on the fly after the deployment on the server. Not during the build process, and not every couple of seconds, but for every request.
+
+//And If thats your goal, then there is an alternative to getStaticProps function.
+
+//I wanna show you this alternative. That would be another function which you can export, a function that can also be async, and that function is named getServerSideProps(). Just like getStaticProps, that is a reserved name, which NextJS will be looking for. And the difference to getStaticProps, is the getServerSideProps function will not run during the build process, but instead always on the server after deployment.
+
+//You will still return an object inside getServerSideProps, an object with a props property, because after all this function is still about the getting the props for this page component (HomePage "/").
+
+//And you can still then fetch data from an API, or from the file system, whatever you wanna do. Any code  you write inside getServerSideProps function, will always run on the server, never in the client. So you can run server-side code here, you can also perform operations that use credentials, that should not be exposed to your users, because this code only runs on the server.
+
+//And then ultimately, you "return your props object". So "props object with an meetups property which holds my DUMMY_MEETPS array for example"
+
+//Now you "cant set revalidate prop inside return object of getServerSideProps function because it doesnt make any sense here." This getServerSideProps function runs for every incoming requests, so there is no need to revalidate every x seconds. (revalidate=x seconds)
+
+//What you can do in getServerSideProps function, is you can work with a parameter which you'll receive. The "context parameter". And in this context parameter, you also get access to the request object under the req key (context.req), and  the response object that will be sent back (context.res). And If you worked with Node.JS and Express before, this might look familiar to you. There you also get request and response objects to work with those.
+
+//And especially, getting access to the concrete request object can be helpful (const req = context.req), for example, when you're working with authentication, and you need to check some session cookie.
+
+//You do have access to the incoming request and all its headers and the requst body If you need to. And that might give you extra information or data which you need for the code that executes in getServerSideProps function.
+
+//Ultimately, you then dont return a response by working on that response object (const res = context.res), but instead, you return this object with the props key, which holds the props for this page component function (HomePage). So that is how you can  use getServerSideProps for preparing that data for your page.
+
+function HomePage(props) {
+  return <MeetupList meetups={props.meetups} />;
+}
+
+export async function getServerSideProps(context) {
+  const req = context.req;
+  const res = context.res;
+
+  //fetch data from an API
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS,
+    },
+  };
+}
+
+//And If we do use getServerSideProps, If we save everything, you see it works just as before, and If we view the page source, we also see all the data in here. The unordered list with all the list items. That works exactly as we learned it, but now  the page is pre-generated for every incoming request.
+
+//Which one of the two (getStaticProps or getServerSideProps) should you use? getServerSdeProps function might be better because Its guaranteed to run for every request. But that actually can be a disadvantage. Because that means that you need to wait for your page to be generated on every incoming request.
+
+//Now If you dont have data that changes all the time, and with that I mean that, If it changes multiple times every second, and If you dont need access to the request object, lets for authentication, getStaticProps function is better. Because in getStaticProps you pre-generate an HTML file, that file then can be stored and served by a CDN, and that simply is faster then regenerating and fetching that data for every incoming request (getServerSideProps function). So your page will be faster when working with geetStaticProps, because then it can be catched and reused, instead of regenerated all the time.
+
+//Hence you should only use "getServerSideProps If you need access to that concrete request object (context.req), because you dont have access to request and response in getStaticProps"
+
+//Or If you really have data that changes multiple times every second, and therefore even "revalidate in getStaticProps" wont help you, then getServerSideProps function is a great choice.
+
+//in our case, for our meetup list, getServerSideProps function is a not great choice. Because that is not a data which changes frequently, and here also I dont need to work with the incoming request. Therefore I will use getStaticProps function, because with that , we can "take advantage of catching and we're not regenerating the page multiple times unnecessarily"
+
+(getStaticProps) =>
+  function HomePage(props) {
+    return <MeetupList meetups={props.meetups} />;
+  };
+
+export async function getStaticProps() {
+  //fetch data from an API
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS,
+    },
+    revalidate: 10,
+  };
+}
+
+(getServerSideProps) =>
+  function HomePage(props) {
+    return <MeetupList meetups={props.meetups} />;
+  };
+
+export async function getServerSideProps(context) {
+  const req = context.req;
+  const res = context.res;
+
+  //fetch data from an API
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS,
+    },
+  };
+}

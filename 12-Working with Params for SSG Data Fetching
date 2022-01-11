@@ -1,0 +1,109 @@
+//Now lets go "MeetupDetail page". For the "new meetup page", we dont need getStaticProps or getServerSideProps because in this page we dont need any data, and therefore there is no need to use that functions, these functions only purpose to fetch data for the pre-generated page If that page needs any data. And therefore we dont need those fucntions in new meetup page.
+
+//But for "the MeetupDetail page, we do have data that is neeeded. For the moment it is hardcoded data, but that will change".
+
+function MeetupDetails() {
+  //hardcoded data
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+} //[meetupId]/index.js
+
+//And hence here on the MeetupDetails component, we also wanna  use getStaticProps or getServerSideProps. Now which one is better? It depends on how often your data changes, and If you need access to the request object.
+
+//And in MeetupDetails page its fair to assume that the meetup data does not change very often. Indeed, this application doesnt have a feature for changing the meetup data, we can only add meetups, but If the application have a change feature, it would not be the case, that a meet up changes multiple times every second.
+
+//And therefore for the MeetupDetails component I would argue that getStaticProps is better than getServerSideProps. So here we export getStaticProps and we can turn it into an async function If we want to use async/await, and inside the function we could fetch the data for a single meetup, and then of course we return an object with the props key, and props key also holds an object with  the meetupData prop which could again a nested object, where we then have this data (image: link, id:"m1",title:"first meetup",address:"",descriotion:""), that could be the data which we send to the this component function (MeetupDetails)
+
+function MeetupDetails() {
+  return (
+    <MeetupDetail
+      image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+      title="First Meetup"
+      address="Some Street 5, Some City"
+      description="This is a fist meetup"
+    />
+  );
+}
+
+export async function getStaticProps() {
+  return {
+    props: {
+      meetupData: {
+        image:
+          "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+        id: "m1",
+        title: "First meetup",
+        address: "Some Street 5, Some City",
+        description: "This is a fist meetup",
+      },
+    },
+  };
+}
+
+//But here we'll have a slight problem. Keep in mind that, "this is a dynamic page ([meetupId/index.js])", "so when we reach out to an API inside the getStaticProps to fetch the data for a single meetup/for a specific meetup, we need a way of identifiyting that meetup, we need its id for example"
+
+//Now the "id is thankfully encoded into URL", and therefore we did learn that, we can use "useRouter hook to get access to the Router object, and then use the query property on the router object". But problem with that, is that the useRouter hook can only be used in the component function, not in getStaticProps function, that's not a function where you can use React hooks. So we cant get to the meetupId from the URL with help of useRouter hook in getStaticProps function.
+
+//But we also dont need to useRouter hook. Because you might remember this "context parameter". I showed the context parameeter to you on getServerSideProps function, but "context parameter" is also exists on getStaticProps function.  (const router=useRouter()) //router.query
+
+//Now when we accept the context parameter "on getStaticProps, context parameter will not hold request and response objects, but it will holds a params key, so there will be a context.params, and that will be an object where our identifiers between the square brackets will be properties and the values wilil be the actual values encoded in the URL. So our meetupId constant could be accessed with context.params.meetupId. (params.meetupId because that's the identifier I have between the sqaure brackets/[meetupId]), and that would be the concrete meetupId for which were displaying this meetup. I can console.log(meetupId) so that we can see that this really works.
+
+//And then this meetupId which we could set as id in the return object If we wanna expose it to the component function (MeetupDetails), return object/props/meetupData nested objects /id property: meetupId
+
+old=>
+
+export async function getStaticProps() {
+    return {
+      props: {
+        meetupData: {
+          image:
+            "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+          id: "m1",
+          title: "First meetup",
+          address: "Some Street 5, Some City",
+          description: "This is a fist meetup",
+        },
+      },
+    };
+  }
+
+new=>
+
+function MeetupDetails() {
+    return (
+      <MeetupDetail
+        image="https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80"
+        title="First Meetup"
+        address="Some Street 5, Some City"
+        description="This is a fist meetup"
+      />
+    );
+  }
+  
+  export async function getStaticProps(context) {
+    //fetch data for a single meetup
+  
+    const meetupId = context.params.meetupId;
+  
+    console.log(meetupId);
+    return {
+      props: {
+        meetupData: {
+          image:
+            "https://images.unsplash.com/photo-1588963940468-9e6e4d202209?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1771&q=80",
+          id: meetupId,
+          title: "First meetup",
+          address: "Some Street 5, Some City",
+          description: "This is a fist meetup",
+        },
+      },
+    };
+  }
+
+//With that If we save this, and visit the DetailPage of a Single Meetup, we can get error though, "getStaticProps is required", What's this error about?

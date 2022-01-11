@@ -1,0 +1,54 @@
+//Before we work on the "actual data fetching and sending data to a backend", lets work on that "DetailPage". Weve got that "show details button", but it's not doing anything else.
+
+//The goal of course,is "to load this meetupId page, this dynamic meetupId page, whenever we click on a single meetup item , to be precise, when we click on that show details button". (at the moment this dynamic meetupId page is empty. This is gonna be our meetup Detail page)
+
+//Therefore we first of all "need a link". For this, "on the MeetupItem component we wanna create a Link". And of course, we could do this with "Link component", and this is the correct way of doing that, since this Link component would render an anchor tag. But "to show you how you could navigate programatically, I wanna show you alternative, I will stick to "a button in the MeetupItem component, even though I said the Link component technically a bit better, but we'll stick to this button. And Instead, I wanna create a function, that function will then navigate us away. This function name is "showDetailIsHandler". And we "connect this button to this function with onClick prop". And "in the showDetailIsHandler function body we wanna navigate away programatically".
+
+we can use Link component to navigate away=>
+
+function MeetupItem(props) {
+return (
+
+<Link/>
+<button>Show Details</button>
+
+But I wanna show navigate away programatically, I will stick to "just button element and I dont wanna use Link component".
+
+function MeetupItem(props) {
+function showDetailsHandler() {}
+return (
+
+<div className={classes.actions}>
+<button onClick={showDetailsHandler}>Show Details</button>
+</div>
+</Card>
+</li>
+
+//And "we can navigate programatically by using this useRouter hook". So we can "import useRouter from next/router". And then we can "call useRouter in the MeetupItem component, not in the showDetailIsHandler function, its a React hook, and therefore the rules of hooks apply, and we should only use React hooks, directly at the root level of a component. And hence we call useRouuter and get access to the "router object". And then we can "use this router object in the showDetailIsHandler to navigate programatically". Because "this router object does not just have the query property (router.query), which gives us access to all that data that might be part of the URL, for a dynamic page for example, but on the router object, we also have methods for navigating programatically". For example, the push method. (router.push()). This pushes a new page onto the stack of pages, and it's the equivalent of using the Link component, If you dont want a Link component, but instead navigate programatically.
+
+//Push method therefore also takes a path to which we wanna navigate. And "the path, in this case, should be our meetupId, because we have this meetupId dynamic page"
+
+//"meetupId is something we get via props, because when we render that MeetupList component, we passed the id prop into the MeetupItem component, and therefore inside of this MeetupItem component, we can now construct a dynamic path "by using props.id". (router.push("/" + props.id)) . This will lead us to /specific-id of this MeetupItem component. Agai With programatically ("/" + props.id) we could also render a Link and construct the link path dynamically as an alternative.
+
+import { useRouter } from "next/router";
+
+function MeetupItem(props) {
+const router = useRouter();
+
+function showDetailsHandler() {
+
+//router.query. router object does not just take the query parameter
+
+router.push("/" + props.id);
+//push() method equivalent of Link component If you dont want Link component instead navigate programatically.
+}
+
+function MeetupList(props) {
+return (
+<ul className={classes.list}>
+{props.meetups.map((meetup) => (
+<MeetupItem
+key={meetup.id}
+id={meetup.id} //we forwarded the "id prop" into the MeetupItem component.
+
+//With that, we reload, we click show details button, we get an error, because we have no content for this page (meetup detail page), but actually we see the URL was changed correctly and the only missing thing now, "the content on this meetup detail page"

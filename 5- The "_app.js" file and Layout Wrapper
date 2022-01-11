@@ -1,0 +1,154 @@
+//I did prepare some components (layout and mainNavigation components) "in the layout folder, in the components folder", that give our pages a general layout, and also a main mainNavigation bar which holds some links, some list items with links. We just need to use that.
+
+function Layout(props) {
+  return (
+    <div>
+      <MainNavigation />
+      <main className={classes.main}>{props.children}</main>
+    </div>
+  );
+} //components/layout subfolder/layout.js
+
+//This "Layout component is built such that we can wrap Layout component around other components, so that we can wrap it around our content, so that we can wrap it around other contents that should be framed by that Layout component. Because this Layout component, "uses props.children to take whats between the opening and closing Layout text and wrap this component around that content"
+
+
+//That means that, we can go to the starting page "/nothing", so index.js in the pages folder, and then we can "wrap this instance of MeetupList component with Layout component". For this we also need to import the Layout component.
+
+import Layout from "../components/layout/Layout";
+
+
+function HomePage() {
+  return (
+    <Layout>
+      <MeetupList meetups={DUMMY_MEETUPS} />
+    </Layout>
+  );
+}
+
+
+//If we do that, we get an error that "Link is not defined". We get this error because "in that mainNavigation component, I'm using the Link component but I'm not importing it". So "import Link component from next/link". And that allows us to create those links. However, the "to prop" then should be changed to "href prop" because the Link component offered by NextJS wants "a href prop" where we "define the destination of that link"
+
+old=>
+
+function MainNavigation() {
+  return (
+    <header className={classes.header}>
+      <div className={classes.logo}>React Meetups</div>
+      <nav>
+        <ul>
+          <li>
+            <Link to="/">All Meetups</Link>
+          </li>
+          <li>
+            <Link to="/new-meetup">Add New Meetup</Link>
+          </li> //components/layout/MainNavigation file
+
+new=>
+
+import Link from "next/link";
+
+function MainNavigation() {
+  return (
+    <header className={classes.header}>
+      <div className={classes.logo}>React Meetups</div>
+      <nav>
+        <ul>
+          <li>
+            <Link href="/">All Meetups</Link>
+          </li>
+          <li>
+            <Link href="/new-meetup">Add New Meetup</Link>
+          </li>
+        </ul>
+
+//With that, we got this nice navigation bar at the top there. And now we can all click "all meetups link" to go to the starting page, and click "add new meetup link" to go to this form page. "on this form page, were still missing this Layout around our content, we only have that Layout component on the starting page content". So therefore , add this Layout component also around the the content of the "NewMeetupPage"
+
+
+//But you will probably see that, this becomes cumbersome, the more pages our application has. If we have dozens of pages and wrapping our general Layout component around all the "page contents", so "going into all the page components t wrap Layout component around the content, that becomes cumbersome"
+
+function HomePage() {
+  return (
+    <Layout>
+      <MeetupList meetups={DUMMY_MEETUPS} />
+    </Layout>
+  );
+} //Root file =>pages/ index.js 
+
+
+function NewMeetupPage() {
+  function addMeetupHandler(enteredMeetupData) {
+    console.log(enteredMeetupData);
+  }
+
+  return (
+    <Layout>
+      <NewMeetupForm onAddMeetup={addMeetupHandler} />
+    </Layout>
+  );
+} //pages/new-meetup subfolder/index.js
+
+
+//And that's where "_app.js file" becomes important. This is a special file, "which exist in this pages folder out of the box" and "which you could create on your own as well, If it doenst exist in which it should contain the content like this".
+
+import '../styles/globals.css'
+
+function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />
+} //pages/ _app.js file /MyApp component
+
+
+//"_app.js file" is kind of your Route component. This MyApp component which is defined in "_app.js file", this special MyApp component acts as the root component NextJS will render. MyApp component receives props and uses object destructuring to pull information out of the props, and the information it pulls out of props, is "a component prop", and "a pageProps prop". These props are passed into this MyApp component automatically by NextJS.
+
+//"component is a prop that holds the actual page contents that should be rendered". So "component prop will be different whenever we switch the page".  "And pageProps prop are specific props our pages might be getting". "And at the moment our pages are not getting any props at all", because "at the moment we have no source that would provide such props". But thats something were gonna change.
+
+
+//But with that, we know that "Component prop in the MyApp component, in this _app.js file, will in the end be the actual page content of our different pages". And "Component prop will change whenever we navigate from page A to page B".
+
+//Now since its the case, we can utilize this _app.js file, and wrap this "component prop with our Layout component", and then "we dont have to do it inside of our different page files".
+
+
+//So we can "remove the Layout component from index.js from our HomePage", we can "remove that and go back to MeetupList and remove the Layout import" and "instead go _app.js file and here import Layout component and now we can wrap "this Component prop with the Layout component".
+
+//And that means that "our different page contents will be wrapped with this Layout component".
+
+
+old =>
+
+
+function HomePage() {
+  return (
+    <Layout>
+      <MeetupList meetups={DUMMY_MEETUPS} />
+    </Layout>
+  );
+} //Root file =>pages/ index.js => removed Layout component
+
+
+function NewMeetupPage() {
+  function addMeetupHandler(enteredMeetupData) {
+    console.log(enteredMeetupData);
+  }
+
+  return (
+    <Layout>
+      <NewMeetupForm onAddMeetup={addMeetupHandler} />
+    </Layout>
+  );
+} //pages/new-meetup subfolder/index.js => removed Layout component
+
+
+new=>
+
+import Layout from "../components/layout/Layout";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <Layout>
+      <Component {...pageProps} />
+    </Layout>
+  );
+}
+
+//With that, "on the NewMeetupPage we also got this Layout applied. Weve got the navigation bar, weve got the extra styling which ensures that, the page content does not take the entire width". 
+
+//And "hence now on all the pages, we got this layout and we dont need to wrap it around the different page contents inside of the different page files". And "thats of course, more maintainable and convenient approach of applying general components to our application". So wehenver you have some component that affects all your paages, you can utilize this _app.js file to easily add that, "without diving into dozens of files individually"
